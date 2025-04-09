@@ -74,4 +74,9 @@ export class UserService {
     const { password, ...userWithoutPassword } = deletedUser;
     return userWithoutPassword;
   }
+
+  async findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+
+  }
 }
