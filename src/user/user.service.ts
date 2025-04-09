@@ -1,25 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private configService: ConfigService) {}
 
   async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+    const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
+    
+    // Se alguém tentar criar um usuário com o email admin
+    if (createUserDto.email === adminEmail) {
+      throw new ForbiddenException('Email reservado para administração');
+    }
+  
     const data: Prisma.UserCreateInput = {
       email: createUserDto.email,
       name: createUserDto.name,
       password: await bcrypt.hash(createUserDto.password, 10),
     }
-
+  
     const createdUser = await this.prisma.user.create({
       data
     });
-
+  
     const { password, ...userWithoutPassword } = createdUser;
     return userWithoutPassword;
   }
