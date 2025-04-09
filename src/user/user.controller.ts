@@ -8,6 +8,8 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+
+  // http://localhost:3001/users
   @Post()
   @HttpCode(201)
   create(@Body() createUserDto: CreateUserDto) {
